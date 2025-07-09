@@ -1,17 +1,38 @@
-import { Image, Text, View } from "react-native";
+import React, { useEffect } from "react";
+import { Image, Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootParamList } from "../routes";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 
 type Props = NativeStackScreenProps<RootParamList, "Results">;
 
 const trophyUrl = "https://arenafanzone.com/cdn/shop/products/1copie.jpg";
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 export const Results = ({ navigation, route }: Props) => {
   const { startingNumber, targetNumber, isHigher } = route?.params || {};
   const isWin =
     (!isHigher && startingNumber > targetNumber) ||
     (isHigher && startingNumber < targetNumber);
+
+  const playAgainTranslateX = useSharedValue(500);
+
+  useEffect(() => {
+    playAgainTranslateX.value = withTiming(0, {
+      duration: 600,
+      easing: Easing.out(Easing.exp),
+    });
+  }, []);
+
+  const animatedPlayAgainStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: playAgainTranslateX.value }],
+  }));
 
   if (
     startingNumber === undefined ||
@@ -27,11 +48,7 @@ export const Results = ({ navigation, route }: Props) => {
   }
 
   const resultMessage = () => {
-    if (isWin) {
-      return `You've won`;
-    } else {
-      return `You've lost`;
-    }
+    return isWin ? "You've won" : "You've lost";
   };
 
   return (
@@ -41,14 +58,23 @@ export const Results = ({ navigation, route }: Props) => {
       <Text style={styles.text}>
         Starting number was {startingNumber} and target was {targetNumber}
       </Text>
-      {isWin && (
-        <View>
+
+      <View style={{ alignItems: "center" }}>
+        <AnimatedTouchable
+          onPress={() => navigation.navigate("Game")}
+          style={[styles.buttonHigher, animatedPlayAgainStyle]}
+        >
+          <Text style={styles.buttonText}>Play again !</Text>
+        </AnimatedTouchable>
+
+        {isWin && (
           <Image
             source={{ uri: trophyUrl }}
-            style={{ width: 240, height: 240, marginTop: 50 }}
+            style={{ width: 240, height: 240, marginTop: 30 }}
           />
-        </View>
-      )}
+        )}
+      </View>
+
       <StatusBar />
     </View>
   );
@@ -65,12 +91,24 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 30,
     marginVertical: 15,
-    textAlign:"center",
+    textAlign: "center",
   },
-    textBold: {
+  textBold: {
     fontSize: 30,
-    marginVertical: 15,
-    textAlign:"center",
-    fontWeight:"bold",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  buttonHigher: {
+    backgroundColor: "purple",
+    paddingVertical: 30,
+    paddingHorizontal: 40,
+    borderRadius: 15,
+    marginVertical: 20,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
