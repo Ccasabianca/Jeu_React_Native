@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootParamList } from "../routes";
+import { useFocusEffect } from "@react-navigation/native";
 
 type Props = NativeStackScreenProps<RootParamList, "Game">;
 
 export const Game = ({ navigation }: Props) => {
   const [startingNumber, setStartingNumber] = useState<number>(0);
 
-  useEffect(() => {
-    const random = Math.floor(Math.random() * 100) + 1;
-    setStartingNumber(random);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const random = Math.floor(Math.random() * 100) + 1;
+      setStartingNumber(random);
+    }, [])
+  );
 
   const handleChoice = (isHigher: boolean) => {
     const targetNumber = Math.floor(Math.random() * 100) + 1;
